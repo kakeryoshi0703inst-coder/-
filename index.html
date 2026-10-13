@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="掃除や買い物などを「最後にいつ行ったか」をスマートに記録・管理するアプリ。">
+  <meta name="theme-color" content="#FAF8F5">
+  <title>メモっとく？</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20width=%2232%22%20height=%2232%22><text y=%2226%22 font-size=%2226%22>⏳</text></svg>">
+</head>
+<body>
+  <div id="app" class="mobile-app-shell">
+
+    <!-- Top Mobile Header -->
+    <header class="mobile-header">
+      <div class="header-main-row">
+        <div class="app-brand">
+          <div class="brand-emoji">⏳</div>
+          <div class="brand-titles">
+            <h1 class="brand-app-name">メモっとく？</h1>
+          </div>
+        </div>
+        <button type="button" class="btn-icon-soft" id="btnOpenSettings" aria-label="設定・データ管理" title="設定">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+      </div>
+
+      <!-- View Switcher Tabs: 📋 リスト vs 📅 カレンダー -->
+      <div class="view-mode-tabs" role="tablist" aria-label="表示切り替え">
+        <button type="button" class="view-tab-btn active" id="tabViewList" role="tab" aria-selected="true">
+          📋 項目リスト
+        </button>
+        <button type="button" class="view-tab-btn" id="tabViewCalendar" role="tab" aria-selected="false">
+          📅 カレンダー
+        </button>
+      </div>
+
+      <!-- Quick Summary Stats Bar -->
+      <div class="summary-stats-pills">
+        <div class="stat-badge stat-badge-alert" id="statBadgeAlert" style="display: none;">
+          ⚠️ <span id="statAlertCount">0</span> 件が期限超過・間近
+        </div>
+        <div class="stat-badge stat-badge-neutral">
+          登録: <span id="statTotalCount">0</span> 項目
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content Container -->
+    <main class="mobile-main-content">
+      
+      <!-- SUBVIEW 1: ITEM LIST -->
+      <div id="subviewList" class="subview-section active">
+        <!-- Search & Sort Row -->
+        <div class="search-sort-row">
+          <div class="search-input-box">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="search" id="searchInput" class="search-mobile-input" placeholder="項目名やメモで検索..." autocomplete="off">
+            <button type="button" id="btnSearchClear" class="search-clear-btn" style="display: none;">✕</button>
+          </div>
+
+          <select id="sortSelect" class="sort-select" aria-label="並び替え">
+            <option value="priority">優先度順 (超過・間近順)</option>
+            <option value="next_due">次回目安が近い順</option>
+            <option value="recent">最近やった順</option>
+            <option value="oldest">昔やった順</option>
+            <option value="name">名前順</option>
+          </select>
+        </div>
+
+        <!-- Horizontal Scrollable Category Filter Chips -->
+        <div class="category-scroll-chips" id="categoryFilterChips" role="radiogroup" aria-label="カテゴリで絞り込み">
+          <button type="button" class="cat-filter-btn active" data-cat="all">すべて</button>
+          <button type="button" class="cat-filter-btn cat-attention-btn" data-cat="attention">⚠️ 要注意</button>
+          <!-- Category chips dynamically injected -->
+        </div>
+
+        <!-- Cards List -->
+        <div class="items-list-container" id="itemsListContainer">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- SUBVIEW 2: CALENDAR VIEW (一目でいつ行ったのかが分かるカレンダー欄) -->
+      <div id="subviewCalendar" class="subview-section" style="display: none;">
+        <div class="calendar-card-mobile">
+          <div class="calendar-month-nav">
+            <button type="button" class="btn-cal-nav" id="calPrevMonth" aria-label="前月">‹</button>
+            <h2 class="calendar-month-title" id="calMonthTitle">2026年 9月</h2>
+            <button type="button" class="btn-cal-nav" id="calNextMonth" aria-label="翌月">›</button>
+            <button type="button" class="btn-cal-today" id="calTodayBtn">今日</button>
+          </div>
+
+          <div class="calendar-weekdays-row">
+            <span class="day-sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="day-sat">土</span>
+          </div>
+
+          <div class="calendar-days-grid" id="calendarDaysGrid">
+            <!-- 35 or 42 day cells dynamically generated -->
+          </div>
+        </div>
+
+        <!-- Selected Date Activities Detail -->
+        <div class="cal-selected-day-card">
+          <div class="cal-selected-day-header">
+            <div class="cal-selected-date-title" id="calSelectedDateTitle">日付を選択</div>
+            <span class="cal-selected-count-badge" id="calSelectedCountBadge">0件</span>
+          </div>
+
+          <!-- 作業目安日(予定)セクション -->
+          <div class="cal-day-section" id="calDueDaySection">
+            <div class="cal-day-section-title">
+              <span>⏰ 作業目安日の項目</span>
+              <span class="cal-mini-badge" id="calDueCountBadge">0件</span>
+            </div>
+            <div class="cal-due-items-list" id="calDueItemsList">
+              <!-- Items due on selected date -->
+            </div>
+          </div>
+
+          <!-- 実施した記録セクション -->
+          <div class="cal-day-section" id="calDoneDaySection">
+            <div class="cal-day-section-title">
+              <span>✨ 実施した記録</span>
+              <span class="cal-mini-badge" id="calDoneCountBadge">0件</span>
+            </div>
+            <div class="cal-day-items-list" id="calDayItemsList">
+              <!-- Items completed on selected date -->
+            </div>
+          </div>
+
+          <button type="button" class="btn-cal-add-done" id="btnCalAddDoneForDate">
+            ＋ この日の実施を記録する
+          </button>
+        </div>
+
+        <!-- Monthly Completed Activities Summary -->
+        <div class="cal-month-summary-card" id="calMonthSummaryCard">
+          <!-- Monthly stats & breakdown -->
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Fixed Action Bar (Thumb Zone) -->
+    <div class="mobile-bottom-bar">
+      <button type="button" class="btn-create-fab" id="btnAddNewItem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>新しい項目を追加</span>
+      </button>
+    </div>
+
+    <!-- ================= MODALS & BOTTOM SHEETS ================= -->
+
+    <!-- 1. ITEM DETAIL & RECORD "DONE" MODAL (詳細確認 & 完了記録) -->
+    <div class="modal-backdrop" id="itemDetailModal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="bottom-sheet-card">
+        <div class="sheet-handle-bar"></div>
+        
+        <div class="sheet-header">
+          <div class="detail-cat-badge" id="detailCatBadge">🧹 掃除</div>
+          <button type="button" class="btn-icon-ghost" id="btnCloseDetailModal" aria-label="閉じる">✕</button>
+        </div>
+
+        <div class="sheet-body">
+          <h2 class="detail-item-title" id="detailItemTitle">お風呂掃除</h2>
+          
+          <!-- Last Done Status Display Card -->
+          <div class="last-done-status-card" id="detailStatusCard">
+            <div class="status-card-top-row">
+              <span class="status-card-label">最後にやった日</span>
+              <span class="status-indicator-pill" id="detailStatusPill">🟢 順調</span>
+            </div>
+            <div class="status-days-large" id="detailElapsedText">3日前</div>
+            <div class="status-date-sub" id="detailLastDoneDateStr">2026年9月22日 (火)</div>
+            <div class="status-interval-info" id="detailIntervalInfo">目標周期: 7日ごと (あと4日)</div>
+            
+            <!-- 次の作業目安日表示 & クイック変更 -->
+            <div class="detail-next-due-card">
+              <div class="next-due-card-header">
+                <span class="next-due-header-label">⏰ 次の作業目安日</span>
+                <span class="next-due-status-badge" id="detailNextDueBadge">未設定</span>
+              </div>
+              <div class="next-due-date-display" id="detailNextDueDateStr">未設定</div>
+              <div class="next-due-quick-edit-row">
+                <input type="date" id="quickNextDueDateInput" class="mobile-form-input-sm" aria-label="目安日を変更">
+                <button type="button" class="btn-sm-action" id="btnQuickSaveNextDue">目安日を設定</button>
+                <button type="button" class="btn-sm-ghost" id="btnQuickClearNextDue" title="目安日を解除">解除</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRIMARY ACTION: RECORD DONE (今やった！) -->
+          <div class="record-done-box">
+            <div class="record-box-title">実施を記録する</div>
+            <div class="record-inputs-row">
+              <div class="form-group flex-1">
+                <label for="recordDoneDateInput" class="form-sub-label">実施日時</label>
+                <input type="datetime-local" id="recordDoneDateInput" class="mobile-form-input">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="recordDoneNoteInput" class="form-sub-label">今回のメモ・気づき (任意)</label>
+              <input type="text" id="recordDoneNoteInput" class="mobile-form-input" placeholder="例: カビキラー使用、2袋まとめ買い">
+            </div>
+            <button type="button" class="btn-primary-large" id="btnSubmitRecordDone">
+              ✨ 今やった！ (完了を記録)
+            </button>
+          </div>
+
+          <!-- Past History Section -->
+          <div class="history-section">
+            <div class="history-section-header">
+              <h3 class="history-title">過去の実施履歴</h3>
+              <span class="history-count" id="detailHistoryCount">0回</span>
+            </div>
+            <div class="history-timeline-list" id="detailHistoryList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Secondary Actions -->
+          <div class="sheet-secondary-actions">
+            <button type="button" class="btn-outline" id="btnEditCurrentItem">✏️ 項目を編集</button>
+            <button type="button" class="btn-outline btn-outline-danger" id="btnDeleteCurrentItem">🗑️ 項目を削除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. CREATE / EDIT ITEM MODAL -->
+    <div class="modal-backdrop" id="itemEditModal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="bottom-sheet-card">
+        <div class="sheet-handle-bar"></div>
+        
+        <div class="sheet-header">
+          <h3 class="sheet-title" id="editModalTitle">新しい項目を登録</h3>
+          <button type="button" class="btn-icon-ghost" id="btnCloseEditModal" aria-label="閉じる">✕</button>
+        </div>
+
+        <form id="itemEditForm" class="sheet-body form-flow">
+          <input type="hidden" id="editItemId" value="">
+
+          <!-- Title Input -->
+          <div class="form-group">
+            <label for="editTitleInput" class="form-label">項目名 <span class="required">*</span></label>
+            <input type="text" id="editTitleInput" class="mobile-form-input" placeholder="例: お風呂掃除、トイレットペーパー買い出し" required maxlength="80">
+          </div>
+
+          <!-- Category Selection -->
+          <div class="form-group">
+            <label class="form-label">カテゴリ</label>
+            <div class="category-radio-grid" id="editCategoryRadioGrid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Interval (推奨周期) -->
+          <div class="form-group">
+            <label class="form-label">目標周期・目安ペース</label>
+            <div class="interval-preset-chips" id="intervalPresetChips">
+              <button type="button" class="preset-chip" data-days="0">周期なし</button>
+              <button type="button" class="preset-chip" data-days="3">3日</button>
+              <button type="button" class="preset-chip active" data-days="7">1週間</button>
+              <button type="button" class="preset-chip" data-days="14">2週間</button>
+              <button type="button" class="preset-chip" data-days="30">1ヶ月</button>
+              <button type="button" class="preset-chip" data-days="60">2ヶ月</button>
+              <button type="button" class="preset-chip" data-days="90">3ヶ月</button>
+              <button type="button" class="preset-chip" data-days="180">半年</button>
+            </div>
+            <div class="interval-custom-row">
+              <span class="custom-label">日数指定:</span>
+              <input type="number" id="editCustomIntervalInput" class="mobile-form-input-number" min="1" max="999" placeholder="7">
+              <span class="custom-unit">日ごと</span>
+            </div>
+          </div>
+
+          <!-- Initial / Last Done Date (For creation) -->
+          <div class="form-group" id="initialDoneGroup">
+            <label class="form-label">最後に実施した日時 (任意)</label>
+            <input type="datetime-local" id="editInitialDoneDate" class="mobile-form-input">
+            <span class="form-help-text">空欄にすると「未実施」として登録されます。</span>
+          </div>
+
+          <!-- Next Due Date (次の作業目安日) -->
+          <div class="form-group" id="editNextDueGroup">
+            <div class="form-label-row">
+              <label for="editNextDueDate" class="form-label">次の作業目安日 (任意)</label>
+              <button type="button" class="btn-text-action" id="btnAutoCalcNextDue">周期から自動計算</button>
+            </div>
+            <div class="next-due-input-wrapper">
+              <input type="date" id="editNextDueDate" class="mobile-form-input">
+              <button type="button" class="btn-clear-date" id="btnClearNextDueDate" title="目安日をクリア" aria-label="目安日をクリア">✕</button>
+            </div>
+            <div class="next-due-quick-chips" id="editNextDueQuickChips">
+              <button type="button" class="quick-chip" data-days="0">今日</button>
+              <button type="button" class="quick-chip" data-days="1">明日</button>
+              <button type="button" class="quick-chip" data-days="3">3日後</button>
+              <button type="button" class="quick-chip" data-days="7">1週間後</button>
+              <button type="button" class="quick-chip" data-days="14">2週間後</button>
+              <button type="button" class="quick-chip" data-days="30">1ヶ月後</button>
+            </div>
+            <span class="form-help-text">指定した日付が次の目安になります。未指定の場合は目標周期から自動判定されます。</span>
+          </div>
+
+          <!-- Memo / Notes -->
+          <div class="form-group">
+            <label for="editNotesInput" class="form-label">メモ・手順など (任意)</label>
+            <textarea id="editNotesInput" class="mobile-form-input" rows="2" placeholder="例: 排水口のゴミ取りネットも交換する、サイズはダブル"></textarea>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="form-submit-row">
+            <button type="button" class="btn-trash-cancel" id="btnCancelEditItem" title="破棄・キャンセル" aria-label="破棄">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+            <button type="submit" class="btn-primary-large" id="btnSaveItem">登録する</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 3. SETTINGS & BACKUP MODAL -->
+    <div class="modal-backdrop" id="settingsModal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="bottom-sheet-card">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 class="sheet-title">設定・データ管理</h3>
+          <button type="button" class="btn-icon-ghost" id="btnCloseSettingsModal" aria-label="閉じる">✕</button>
+        </div>
+
+        <div class="sheet-body">
+          <div class="settings-card">
+            <div class="settings-card-title">🛡️ プライバシー &amp; オフライン</div>
+            <p class="settings-card-desc">すべてのデータはお使いの端末のローカルストレージ（IndexedDB）に安全に保存され、外部サーバーには送信されません。</p>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-card-title">💾 バックアップ &amp; 復元</div>
+            <p class="settings-card-desc">JSON形式で全項目と過去の履歴を保存・復元できます。</p>
+            <div class="settings-btn-row">
+              <button type="button" class="btn-outline" id="btnExportJson">📥 JSONエクスポート</button>
+              <label class="btn-outline btn-file-label">
+                📤 JSONインポート
+                <input type="file" id="fileImportJson" accept=".json" style="display: none;">
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-card-title">⚠️ データの初期化</div>
+            <button type="button" class="btn-outline btn-outline-danger" id="btnClearAllData">全データを削除</button>
+          </div>
+
+          <div class="about-app-box">
+            <strong>メモっとく？</strong><br>
+            日常の行動やルーティンをスマートに記録。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. CALENDAR ITEM PICKER MODAL -->
+    <div class="modal-backdrop" id="calItemPickerModal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="bottom-sheet-card">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 class="sheet-title" id="calPickerTitle">実施した項目を選択</h3>
+          <button type="button" class="btn-icon-ghost" id="btnCloseCalPickerModal" aria-label="閉じる">✕</button>
+        </div>
+        <div class="sheet-body">
+          <p style="font-size:12px; color:var(--text-sub);" id="calPickerSubtext">この日に実施した項目をタップして記録できます。</p>
+          <div class="cal-picker-items-grid" id="calPickerItemsGrid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastMessage" class="toast-mobile" role="status" aria-live="polite"></div>
+
+  </div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
