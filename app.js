@@ -115,6 +115,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     fileImportJson: document.getElementById('fileImportJson'),
     btnClearAllData: document.getElementById('btnClearAllData'),
 
+    // Offline & PWA
+    offlineBanner: document.getElementById('offlineBanner'),
+    networkStatusDisplay: document.getElementById('networkStatusDisplay'),
+    networkStatusText: document.getElementById('networkStatusText'),
+    btnInstallPwa: document.getElementById('btnInstallPwa'),
+    iosInstallHint: document.getElementById('iosInstallHint'),
+
     // Toast
     toastMessage: document.getElementById('toastMessage')
   };
@@ -1346,6 +1353,99 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/'/g, '&#039;');
   }
 
+  // ==========================================================================
+  // OFFLINE & PWA MANAGEMENT
+  // ==========================================================================
+  function initNetworkMonitoring() {
+    const updateOnlineStatus = () => {
+      const isOnline = navigator.onLine;
+      if (DOM.offlineBanner) {
+        DOM.offlineBanner.style.display = isOnline ? 'none' : 'block';
+      }
+      if (DOM.networkStatusText && DOM.networkStatusDisplay) {
+        const dot = DOM.networkStatusDisplay.querySelector('.status-dot');
+        if (isOnline) {
+          DOM.networkStatusText.textContent = '接続中 (オンライン)';
+          if (dot) {
+            dot.className = 'status-dot online';
+          }
+        } else {
+          DOM.networkStatusText.textContent = 'オフライン (端末内に安全保存)';
+          if (dot) {
+            dot.className = 'status-dot offline';
+          }
+        }
+      }
+    };
+
+    window.addEventListener('online', () => {
+      updateOnlineStatus();
+      showToast('🟢 オンラインに復帰しました');
+    });
+
+    window.addEventListener('offline', () => {
+      updateOnlineStatus();
+      showToast('📶 オフラインになりました（端末内に保存されます）');
+    });
+
+    updateOnlineStatus();
+  }
+
+  let deferredPrompt = null;
+  function initPwaInstall() {
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    if (isIos && !isStandalone && DOM.iosInstallHint) {
+      DOM.iosInstallHint.style.display = 'block';
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (DOM.btnInstallPwa && !isStandalone) {
+        DOM.btnInstallPwa.style.display = 'inline-flex';
+      }
+    });
+
+    if (DOM.btnInstallPwa) {
+      DOM.btnInstallPwa.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          showToast('ブラウザのメニューから「ホーム画面に追加」を選択してください');
+          return;
+        }
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          showToast('アプリを追加しました！✨');
+          DOM.btnInstallPwa.style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      if (DOM.btnInstallPwa) DOM.btnInstallPwa.style.display = 'none';
+      showToast('アプリのインストールが完了しました！🎉');
+    });
+  }
+
+  function registerServiceWorker() {
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('[ServiceWorker] registered successfully, scope:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('[ServiceWorker] registration failed:', err);
+        });
+    }
+  }
+
   // Initial Load
+  initNetworkMonitoring();
+  initPwaInstall();
+  registerServiceWorker();
   await refreshData();
 });

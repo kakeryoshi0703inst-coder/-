@@ -7,10 +7,24 @@
   <meta name="theme-color" content="#FAF8F5">
   <title>メモっとく？</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20width=%2232%22%20height=%2232%22><text y=%2226%22 font-size=%2226%22>⏳</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="メモっとく？">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="alternate icon" href="icon-192.png">
 </head>
 <body>
   <div id="app" class="mobile-app-shell">
+
+    <!-- Offline Alert Banner -->
+    <div id="offlineBanner" class="offline-banner" style="display: none;" role="status">
+      <div class="offline-banner-content">
+        <span class="offline-banner-icon">📶</span>
+        <span class="offline-banner-text"><strong>オフライン動作中</strong>（データは端末内に安全に保存されます）</span>
+      </div>
+    </div>
 
     <!-- Top Mobile Header -->
     <header class="mobile-header">
@@ -337,8 +351,25 @@
 
         <div class="sheet-body">
           <div class="settings-card">
-            <div class="settings-card-title">🛡️ プライバシー &amp; オフライン</div>
-            <p class="settings-card-desc">すべてのデータはお使いの端末のローカルストレージ（IndexedDB）に安全に保存され、外部サーバーには送信されません。</p>
+            <div class="settings-card-title">🛡️ プライバシー &amp; 完全オフライン対応</div>
+            <p class="settings-card-desc">すべてのデータはお使いの端末のローカルストレージ（IndexedDB）に安全に保存され、通信が切れても問題なくご利用いただけます。</p>
+            <div class="settings-status-row" id="networkStatusDisplay">
+              <span class="status-dot online"></span>
+              <span id="networkStatusText">接続中 (オンライン)</span>
+            </div>
+          </div>
+
+          <div class="settings-card" id="pwaInstallCard">
+            <div class="settings-card-title">📱 ホーム画面に追加・アプリ化</div>
+            <p class="settings-card-desc">ホーム画面に追加すると、インターネット接続がない環境（飛行機内や地下など）でもいつでも即座にアプリとして起動・記録できます。</p>
+            <div class="settings-btn-row">
+              <button type="button" class="btn-outline btn-primary-soft" id="btnInstallPwa" style="display: none;">
+                📲 アプリをインストール
+              </button>
+            </div>
+            <div class="ios-install-hint" id="iosInstallHint" style="display: none;">
+              💡 iPhone / iPadをお使いの場合: Safari下部の共有ボタン（<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>）をタップし、<strong>「ホーム画面に追加」</strong>を選択するとアプリとしてご利用いただけます。
+            </div>
           </div>
 
           <div class="settings-card">

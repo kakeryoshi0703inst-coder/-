@@ -1674,3 +1674,94 @@ body {
   background: #FFD166;
   box-shadow: 0 0 0 1px var(--text-main);
 }
+
+/* ==========================================================================
+   OFFLINE & PWA STYLES
+   ========================================================================== */
+.offline-banner {
+  background: #FCF5E8;
+  border-bottom: 1px solid rgba(199, 134, 34, 0.25);
+  color: #8C5A14;
+  padding: 8px 14px;
+  font-size: 12px;
+  z-index: 45;
+  animation: slideDown 0.22s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.offline-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.offline-banner-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.settings-status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+  color: var(--text-main);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.online {
+  background: var(--status-good);
+  box-shadow: 0 0 0 2px var(--status-good-bg);
+}
+
+.status-dot.offline {
+  background: var(--status-warning);
+  box-shadow: 0 0 0 2px var(--status-warning-bg);
+}
+
+.btn-primary-soft {
+  background: var(--accent-primary);
+  color: #FFFFFF !important;
+  border-color: var(--accent-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary-soft:active {
+  background: var(--accent-primary-hover);
+}
+
+.ios-install-hint {
+  font-size: 12px;
+  color: var(--text-sub);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
