@@ -58,6 +58,9 @@
 
 html, body {
   height: 100%;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden; /* 横揺れ・横スクロールを根本から防止 */
 }
 
 body {
@@ -67,10 +70,18 @@ body {
   color: var(--text-main);
   background-color: #F0ECE4; /* Darker desktop backdrop to frame phone shell */
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body.modal-open {
+  overflow: hidden !important;
+  touch-action: none;
 }
 
 /* Mobile App Shell (Max Width on PC, 100% on Phone) */
 .mobile-app-shell {
+  width: 100%;
   max-width: 480px;
   min-height: 100vh;
   margin: 0 auto;
@@ -79,6 +90,8 @@ body {
   flex-direction: column;
   position: relative;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.06);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -229,11 +242,13 @@ body {
 
 .search-mobile-input {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 8px 30px 8px 32px;
   border-radius: var(--radius-full);
   border: 1px solid var(--border-light);
   background: var(--bg-card);
-  font-size: 13px;
+  font-size: 16px; /* iOS Safari の自動ズーム防止 */
   color: var(--text-main);
   outline: none;
   transition: border-color var(--transition-fast);
@@ -258,9 +273,11 @@ body {
   border-radius: var(--radius-full);
   border: 1px solid var(--border-light);
   background: var(--bg-card);
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-sub);
   outline: none;
+  max-width: 160px;
+  box-sizing: border-box;
 }
 
 /* Horizontal Scrollable Category Filter */
@@ -540,6 +557,9 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100vw;
+  max-width: 100%;
+  height: 100%;
   background: rgba(44, 42, 41, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -550,6 +570,8 @@ body {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0.25s ease;
+  overflow: hidden;
+  touch-action: none;
 }
 
 .modal-backdrop.open {
@@ -568,8 +590,11 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overflow-x: hidden;
   transform: translateY(100%);
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  touch-action: pan-y;
 }
 
 .modal-backdrop.open .bottom-sheet-card {
@@ -592,6 +617,8 @@ body {
   justify-content: space-between;
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sheet-title {
@@ -622,10 +649,14 @@ body {
 .sheet-body {
   padding: 16px;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Detail Status Card */
@@ -826,12 +857,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .form-label {
@@ -851,14 +889,19 @@ body {
 
 .mobile-form-input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   background: var(--bg-subtle);
-  font-size: 14px;
+  font-size: 16px; /* 16pxでiOS Safariのフォーカス時自動ズーム(画面肥大化・左右揺れ)を完全防止 */
   color: var(--text-main);
   outline: none;
   font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .mobile-form-input:focus {
@@ -866,31 +909,51 @@ body {
   background: #FFFFFF;
 }
 
+/* 日付・日時ピッカーのモバイル幅はみ出し防止 */
+input[type="date"].mobile-form-input,
+input[type="datetime-local"].mobile-form-input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
 .form-help-text {
   font-size: 11px;
   color: var(--text-muted);
 }
 
-/* Category Radio Grid */
+/* Category Radio Grid (minmax(0, 1fr) で親幅の突き破りを防止) */
 .category-radio-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cat-radio-chip {
-  padding: 8px 6px;
+  padding: 8px 4px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-light);
   background: var(--bg-subtle);
-  font-size: 12px;
+  font-size: 11px;
   text-align: center;
   cursor: pointer;
   color: var(--text-sub);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .cat-radio-chip.selected {
@@ -907,6 +970,9 @@ body {
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .preset-chip {
@@ -932,6 +998,9 @@ body {
   gap: 6px;
   font-size: 12px;
   color: var(--text-sub);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-form-input-number {
@@ -940,7 +1009,10 @@ body {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   background: var(--bg-subtle);
-  font-size: 13px;
+  font-size: 16px; /* ズーム防止 */
+  text-align: center;
+  box-sizing: border-box;
+}
   text-align: center;
 }
 
@@ -1412,6 +1484,14 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.next-due-input-wrapper input {
+  padding-right: 36px !important;
 }
 
 .btn-clear-date {
@@ -1441,10 +1521,13 @@ body {
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 4px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .quick-chip {
-  padding: 4px 10px;
+  padding: 5px 9px;
   border-radius: var(--radius-full);
   border: 1px solid var(--border-light);
   background: var(--bg-card);
@@ -1452,6 +1535,7 @@ body {
   color: var(--text-sub);
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .quick-chip:hover, .quick-chip:active {
@@ -1558,10 +1642,13 @@ body {
 
 .mobile-form-input-sm {
   flex: 1;
-  padding: 5px 8px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 16px; /* iOS自動ズーム防止 */
   background: var(--bg-subtle);
   color: var(--text-main);
 }
@@ -1764,4 +1851,36 @@ body {
   line-height: 1.5;
   margin-top: 6px;
 }
+
+/* ==========================================================================
+   MOBILE SCREEN STABILIZATION & ZOOM PREVENTION
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+  /* iOS Safari のフォーカス時自動ズームによる横揺れ・左右ブレを完全防止 */
+  input[type="text"],
+  input[type="search"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* モバイル画面幅を超えないことを徹底 */
+  .mobile-app-shell,
+  .bottom-sheet-card,
+  .sheet-body,
+  .form-flow,
+  .form-group,
+  .category-radio-grid,
+  .interval-preset-chips,
+  .next-due-input-wrapper,
+  .next-due-quick-chips,
+  .form-submit-row {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
 

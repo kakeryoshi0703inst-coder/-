@@ -887,14 +887,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     DOM.calItemPickerModal.classList.add('open');
     DOM.calItemPickerModal.setAttribute('aria-hidden', 'false');
+    updateModalOpenState();
   });
 
   function closeCalPickerModal() {
     DOM.calItemPickerModal.classList.remove('open');
     DOM.calItemPickerModal.setAttribute('aria-hidden', 'true');
+    updateModalOpenState();
   }
 
   DOM.btnCloseCalPickerModal.addEventListener('click', closeCalPickerModal);
+
+  // Modal Open State Synchronization Helper
+  function updateModalOpenState() {
+    const hasOpen = Boolean(document.querySelector('.modal-backdrop.open'));
+    document.body.classList.toggle('modal-open', hasOpen);
+  }
 
   // ==========================================================================
   // DETAIL BOTTOM SHEET (詳細確認 & 完了記録)
@@ -950,12 +958,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Open Bottom Sheet
     DOM.itemDetailModal.classList.add('open');
     DOM.itemDetailModal.setAttribute('aria-hidden', 'false');
+    updateModalOpenState();
   }
 
   function closeItemDetail() {
     DOM.itemDetailModal.classList.remove('open');
     DOM.itemDetailModal.setAttribute('aria-hidden', 'true');
     state.activeItemId = null;
+    updateModalOpenState();
   }
 
   // Quick edit next due date inside detail sheet
@@ -1088,12 +1098,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     DOM.itemEditModal.classList.add('open');
     DOM.itemEditModal.setAttribute('aria-hidden', 'false');
+    updateModalOpenState();
     setTimeout(() => DOM.editTitleInput.focus(), 150);
   }
 
   function closeEditModal() {
     DOM.itemEditModal.classList.remove('open');
     DOM.itemEditModal.setAttribute('aria-hidden', 'true');
+    updateModalOpenState();
   }
 
   // Trash / Cancel button listener
@@ -1282,11 +1294,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   DOM.btnOpenSettings.addEventListener('click', () => {
     DOM.settingsModal.classList.add('open');
     DOM.settingsModal.setAttribute('aria-hidden', 'false');
+    updateModalOpenState();
   });
 
   DOM.btnCloseSettingsModal.addEventListener('click', () => {
     DOM.settingsModal.classList.remove('open');
     DOM.settingsModal.setAttribute('aria-hidden', 'true');
+    updateModalOpenState();
   });
 
   // Export JSON
@@ -1339,7 +1353,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       closeEditModal();
       closeCalPickerModal();
       DOM.settingsModal.classList.remove('open');
+      updateModalOpenState();
     }
+  });
+
+  // Tap backdrop to close modals
+  [DOM.itemDetailModal, DOM.itemEditModal, DOM.settingsModal, DOM.calItemPickerModal].forEach(modal => {
+    if (!modal) return;
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeItemDetail();
+        closeEditModal();
+        closeCalPickerModal();
+        DOM.settingsModal.classList.remove('open');
+        updateModalOpenState();
+      }
+    });
   });
 
   // Helper
